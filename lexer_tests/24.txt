@@ -1,0 +1,6 @@
+[4, 1]        separator        (        (
+[4, 2]        operation        *        *
+[4, 3]        identifier        dsamkd        dsamkd
+[4, 10]        operation        *        *
+[4, 11]        separator        )        )
+[5, 16]        '}' was expected

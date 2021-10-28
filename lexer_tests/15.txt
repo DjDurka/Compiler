@@ -1,0 +1,5 @@
+[1, 1]        identifier        a        a
+[2, 1]        identifier        ab        ab
+[3, 1]        identifier        ab12        ab12
+[4, 1]        identifier        ab_12        ab_12
+[5, 1]        reserved_word        begin        begin
