@@ -9,6 +9,8 @@ class Lexer:
         self.identifier = 'identifier'
         self.reserved_word = 'reserved_word'
         self.integer = 'integer'
+        self.integer2 = 'integer2'
+        self.integer8 = 'integer8'
         self.integer16 = 'integer16'
         self.real = "real"
         self.real_e = "real (e)"
@@ -20,6 +22,7 @@ class Lexer:
         self.separator = "separator"
         self.comment = "commentary"
         self.comment_block = "block commentary"
+        self.comment_block2 = "block commentary 2"
         self.error = "error"
         self.reserved_list = ["array", "asm", "begin", "case", "const", "constructor", "destructor", "do",
                             "downto", "else", "end", "exports", "file", "for", "function", "goto", "if", "implementation",
@@ -30,8 +33,8 @@ class Lexer:
                             "pack", "page", "pred", "put", "read", "readln", "real", "reset", "rewrite",
                             "sin", "sqr", "sqrt", "succ", "text", "true", "unpack", "write", "writeln"]
         self.space_list = [' ', '', '\n', '\t', '\0', '\r']
-        self.operation_list = ['+', '-', '*', '/', '**', ':=','=','<','>','<=','>=','div','mod','-=','+=','*=','/=',]
-        self.separator_list = [':', ',', ';', '.', '(', ')' , '[' , ']']
+        self.operation_list = ['+', '-', '*', '/', '**', ':=', '=', '<', '>', '<=', '>=', 'div', 'mod', '-=', '+=', '*=', '/=']
+        self.separator_list = [':', ',', ';', '.', '(', ')', '[', ']']
         self.buffer = ''
         self.line = 1
         self.col = 1
@@ -50,27 +53,33 @@ class Lexer:
     def current(self):
         return self.lexem
 
-    def find_code(self, s):
-        array = s.split("'")
+    def find_code(self, str):
+        array = str.split("'")
         result = ""
-        for index, value in enumerate(array[1:]):
-            if (index % 2 == 0 and not array[0]) or (index % 2 == 1 and array[0]):
-                result += f"'{value}'"
-            else:
+        buf = ""
+        for index, value in enumerate(array):
+            if index % 2 == 0:
+                for s in value:
+                    if s == "#":
+                        if buf:
+                            result += chr(int(buf))
+                            buf = ""
+                    else:
+                        buf += s
+                result += chr(int(buf))
                 buf = ""
-                sharp = False
-                for v in value:
-                    if v.isdigit() and sharp:
-                        buf += v
-                    elif v == "#" and sharp:
-                        result += chr(int(buf))
-                        buf = ""
-                    elif v == "#":
-                        sharp = True
-                if buf:
-                    result += chr(int(buf))
-
+            else:
+                for s in value:
+                    result += s
+        if buf:
+            result += chr(int(buf))
         return result
+
+
+
+
+
+
 
     def next(self):
         self.clear_buffer()
@@ -92,6 +101,24 @@ class Lexer:
                 elif self.symbol.isdigit():
                     self.add_buffer(self.symbol)
                     self.state = self.integer
+                    self.save_coordinates()
+                    self.get_symbol()
+
+                elif self.symbol == "#":
+                    self.add_buffer(self.symbol)
+                    self.state = self.string_literal_sharp
+                    self.save_coordinates()
+                    self.get_symbol()
+
+                elif self.symbol == "%":
+                    self.add_buffer(self.symbol)
+                    self.state = self.integer2
+                    self.save_coordinates()
+                    self.get_symbol()
+
+                elif self.symbol == "&":
+                    self.add_buffer(self.symbol)
+                    self.state = self.integer8
                     self.save_coordinates()
                     self.get_symbol()
 
@@ -149,14 +176,38 @@ class Lexer:
                     self.lexem = Lexem(self.coordinates, self.integer, self.buffer, int(self.buffer))
                     return self.current()
 
+            elif self.state == self.integer2:
+                if "0" <= self.symbol <= "1":
+                    self.add_buffer(self.symbol)
+                    self.get_symbol()
+                elif self.space_list.count(self.symbol):
+                    self.state = self.indefinite
+                    self.lexem = Lexem(self.coordinates, self.integer2, self.buffer, int(self.buffer[1:], 2))
+                    return self.current()
+                else:
+                    self.state = self.error;
+
+            elif self.state == self.integer8:
+                if "0" <= self.symbol <= "7":
+                    self.add_buffer(self.symbol)
+                    self.get_symbol()
+                elif self.space_list.count(self.symbol):
+                    self.state = self.indefinite
+                    self.lexem = Lexem(self.coordinates, self.integer8, self.buffer, int(self.buffer[1:], 8))
+                    return self.current()
+                else:
+                    self.state = self.error;
+
             elif self.state == self.integer16:
                 if self.symbol.isdigit() or "a" <= self.symbol.lower() <= "f":
                     self.add_buffer(self.symbol)
                     self.get_symbol()
-                else:
+                elif self.space_list.count(self.symbol):
                     self.state = self.indefinite
                     self.lexem = Lexem(self.coordinates, self.integer16, self.buffer, int(self.buffer[1:], 16))
                     return self.current()
+                else:
+                    self.state = self.error;
 
             elif self.state == self.real:
                 if self.symbol.isdigit():
@@ -187,7 +238,7 @@ class Lexer:
                     self.add_buffer(self.symbol)
                     self.get_symbol()
                 else:
-                    if self.buffer[len(self.buffer) - 1] == "+" or self.buffer[len(self.buffer) - 1] == "-":
+                    if self.buffer[-1] == "+" or self.buffer[-1] == "-":
                         raise LexError(f"{self.coordinates}\tUnexpected {self.buffer}")
                     self.state = self.indefinite
                     self.lexem = Lexem(self.coordinates, self.real, self.buffer, float(self.buffer))
@@ -222,9 +273,8 @@ class Lexer:
                     self.state = self.string_literal_sharp if self.symbol == "#" else self.indefinite
                     if self.state == self.indefinite:
                         buffer2 = self.buffer
-                        if self.buffer.count("'") > 2:
-                            buffer2 = self.find_code(buffer2)
-                        self.lexem = Lexem(self.coordinates, self.string, self.buffer, buffer2.replace("'", ""))
+                        buffer2 = self.find_code(buffer2)
+                        self.lexem = Lexem(self.coordinates, self.string, self.buffer, buffer2)
                         return self.current()
                     else:
                         self.add_buffer(self.symbol)
@@ -257,7 +307,7 @@ class Lexer:
                 else:
                     self.state = self.indefinite
                     buffer2 = self.find_code(self.buffer)
-                    self.lexem = Lexem(self.coordinates, self.string, self.buffer, buffer2.replace("'", ""))
+                    self.lexem = Lexem(self.coordinates, self.string, self.buffer, buffer2)
                     return self.current()
 
             elif self.state == self.operation:
@@ -274,7 +324,11 @@ class Lexer:
                     return self.current()
 
             elif self.state == self.separator:
-                if self.operation_list.count(self.buffer + self.symbol):
+                if self.buffer + self.symbol == "(*":
+                        self.clear_buffer()
+                        self.state = self.comment_block2
+                        self.get_symbol()
+                elif self.operation_list.count(self.buffer + self.symbol):
                     self.state = self.operation
                 else:
                     self.state = self.indefinite
@@ -292,6 +346,15 @@ class Lexer:
                 current = self.symbol
                 self.get_symbol()
                 if not self.symbol and current != "}":
+                    raise LexError(f"{[self.line, self.col]}" + "\t'}' was expected")
+
+            elif self.state == self.comment_block2:
+                current = self.symbol
+                self.get_symbol()
+                if current + self.symbol == "*)":
+                    self.state = self.indefinite
+                    self.get_symbol()
+                if not self.symbol and current + self.symbol != "*)":
                     raise LexError(f"{[self.line, self.col]}" + "\t'}' was expected")
 
             elif self.state == self.error:
