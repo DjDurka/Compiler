@@ -1,2 +1,2 @@
-[1, 1]        operation        =        =
-[1, 2]        operation        =        =
+[1, 1]	operation	=	=
+[1, 2]	operation	=	=

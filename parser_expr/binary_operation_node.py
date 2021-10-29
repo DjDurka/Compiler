@@ -8,7 +8,7 @@ class BinaryOperationNode(Node):
 
     def print(self, p=1):
         operation = self.operation.get_value()
-        tab = "        "
+        tab = "\t"
         right = self.right.print(p+1)
         left = self.left.print(p+1)
         return f"{operation}\n" \

@@ -1,4 +1,4 @@
-[1, 1]        identifier        asd        asd
-[1, 5]        integer        112        112
-[1, 9]        real        1.2        1.2
-[1, 13]        string        'dd'        dd
+[1, 1]	identifier	asd	asd
+[1, 5]	integer	112	112
+[1, 9]	real	1.2	1.2
+[1, 13]	string	'dd'	dd

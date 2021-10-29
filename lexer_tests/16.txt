@@ -1,2 +1,2 @@
-[1, 1]        identifier        a        a
-[1, 1]        Unexpected @
+[1, 1]	identifier	a	a
+[1, 1]	Unexpected @

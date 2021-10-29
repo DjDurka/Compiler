@@ -15,7 +15,7 @@ class ParserExpr:
     def parse_expr(self):
         lexem = self.lexer.current()
         if lexem.eof() or lexem.get_value() == ";":
-            raise SyntaxError(f"{lexem.get_coord()}        Expected expression")
+            raise SyntaxError(f"{lexem.get_coord()}\tExpected expression")
         left = self.parse_term()
         operation = self.lexer.current()
         while ["+", "-"].count(operation.get_value()):
@@ -52,7 +52,7 @@ class ParserExpr:
             left = self.parse_expr()
             lexem = self.lexer.current()
             if lexem.get_value() != ")":
-                raise SyntaxError(f"{lexem.get_coord()}        Expected ')'")
+                raise SyntaxError(f"{lexem.get_coord()}\tExpected ')'")
             self.lexer.next()
             return left
-        raise SyntaxError(f"{lexem.get_coord()}        Unexpected {lexem.get_code()}")
+        raise SyntaxError(f"{lexem.get_coord()}\tUnexpected {lexem.get_code()}")

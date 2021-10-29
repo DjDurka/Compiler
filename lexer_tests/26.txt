@@ -1,1 +1,1 @@
-[1, 1]        string        'sda'#67#66'ss'#38'xx'#39        sdaCBss&xx
+[1, 1]	string	'sda'#67#66'ss'#38'xx'#39	sdaCBss&xx

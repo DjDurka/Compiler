@@ -172,7 +172,7 @@ class Lexer:
                     self.get_symbol()
                 else:
                     if self.buffer[len(self.buffer) - 1] == "+" or self.buffer[len(self.buffer) - 1] == "-":
-                        raise LexError(f"{self.coordinates}        Unexpected {self.buffer}")
+                        raise LexError(f"{self.coordinates}\tUnexpected {self.buffer}")
                     self.state = self.indefinite
                     self.lexem = Lexem(self.coordinates, self.real, self.buffer, float(self.buffer))
                     return self.current()
@@ -197,9 +197,9 @@ class Lexer:
 
             elif self.state == self.string:
                 if self.symbol == '\n':
-                    raise LexError(f"{[self.line, self.col]}        Unexpected end of line")
+                    raise LexError(f"{[self.line, self.col]}\tUnexpected end of line")
                 elif self.symbol == '':
-                    raise LexError(f"{[self.line, self.col]}        Unexpected end of file")
+                    raise LexError(f"{[self.line, self.col]}\tUnexpected end of file")
                 elif self.symbol == "'":
                     self.add_buffer(self.symbol)
                     self.get_symbol()
@@ -276,11 +276,11 @@ class Lexer:
                 current = self.symbol
                 self.get_symbol()
                 if not self.symbol and current != "}":
-                    raise LexError(f"{[self.line, self.col]}" + "        '}' was expected")
+                    raise LexError(f"{[self.line, self.col]}" + "\t'}' was expected")
 
             elif self.state == self.error:
                 if self.space_list.count(self.symbol):
-                    raise LexError(f"{self.coordinates}        Unexpected {self.buffer}")
+                    raise LexError(f"{self.coordinates}\tUnexpected {self.buffer}")
                 self.add_buffer(self.symbol)
                 self.get_symbol()
 

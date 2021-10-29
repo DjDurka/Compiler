@@ -23,4 +23,4 @@ class Lexem:
     def print(self):
         if self.eof():
             return ""
-        return f'{self.coordinate}        {self.type}        {self.code}        {self.value}'
+        return f'{self.coordinate}\t{self.type}\t{self.code}\t{self.value}'
