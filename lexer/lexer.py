@@ -9,6 +9,7 @@ class Lexer:
         self.identifier = 'identifier'
         self.reserved_word = 'reserved_word'
         self.integer = 'integer'
+        self.integer16 = 'integer16'
         self.real = "real"
         self.real_e = "real (e)"
         self.real_e_degree = "real (e degree)"
@@ -94,6 +95,12 @@ class Lexer:
                     self.save_coordinates()
                     self.get_symbol()
 
+                elif self.symbol == "$":
+                    self.add_buffer(self.symbol)
+                    self.state = self.integer16
+                    self.save_coordinates()
+                    self.get_symbol()
+
                 elif self.symbol == "'":
                     self.add_buffer(self.symbol)
                     self.state = self.string
@@ -140,6 +147,15 @@ class Lexer:
                 else:
                     self.state = self.indefinite
                     self.lexem = Lexem(self.coordinates, self.integer, self.buffer, int(self.buffer))
+                    return self.current()
+
+            elif self.state == self.integer16:
+                if self.symbol.isdigit() or "a" <= self.symbol.lower() <= "f":
+                    self.add_buffer(self.symbol)
+                    self.get_symbol()
+                else:
+                    self.state = self.indefinite
+                    self.lexem = Lexem(self.coordinates, self.integer16, self.buffer, int(self.buffer[1:], 16))
                     return self.current()
 
             elif self.state == self.real:
